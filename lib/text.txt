@@ -1,0 +1,58 @@
+In order to revoke a JWT token, you can use a token blacklist. 
+When a user logs out or you want to revoke a token for any reason, 
+you add that token to the blacklist. Then, when a user makes a request to the server, 
+you can check whether the token they are sending is in the blacklist. If it is, you can reject the request and respond with an appropriate error message.
+
+Here's an example implementation of a token blacklist:
+
+Create a new file named token_blacklist.js in your project and export an empty array from it:
+
+// token_blacklist.js
+
+module.exports = [];
+
+
+When a user logs out or you want to revoke a token, add that token to the blacklist by pushing it to the array:
+javascript
+Copy code
+// auth_controller.js
+
+const tokenBlacklist = require('../token_blacklist');
+
+// ...
+
+exports.logout = (req, res, next) => {
+  const token = req.headers.authorization.split(' ')[1];
+  tokenBlacklist.push(token);
+  res.status(200).json({ message: 'Logged out successfully' });
+};
+Modify your verifyToken middleware to check whether the token is in the blacklist:
+javascript
+Copy code
+// auth_middleware.js
+
+const tokenBlacklist = require('../token_blacklist');
+
+exports.verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Authentication failed: No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (tokenBlacklist.includes(token)) {
+    return res.status(401).json({ message: 'Authentication failed: Token revoked' });
+  }
+
+  jwt.verify(token, config.jwtSecret, (error, decoded) => {
+    if (error) {
+      return res.status(401).json({ message: 'Authentication failed: Invalid token' });
+    }
+
+    req.userId = decoded.userId;
+    next();
+  });
+};
+With this implementation, whenever you want to revoke a token, you simply add it to the blacklist by calling tokenBlacklist.push(token) in your logout or revocation logic. Then, when a user sends a request with that token, the verifyToken middleware

@@ -7,6 +7,7 @@ import 'package:topup2p_nodejs/main.dart';
 import 'package:topup2p_nodejs/providers/favorites_provider.dart';
 import 'dart:io';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
+import 'package:topup2p_nodejs/utilities/globals.dart';
 import 'package:topup2p_nodejs/utilities/image_file_utils.dart';
 import 'package:topup2p_nodejs/widgets/loading_screen.dart';
 
@@ -55,8 +56,6 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    FavoritesProvider favProvider =
-        Provider.of<FavoritesProvider>(context, listen: false);
     UserProvider userProvider = Provider.of<UserProvider>(context);
     bool flag = MediaQuery.of(context).orientation == Orientation.portrait;
     Widget registerName = Padding(
@@ -82,6 +81,7 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
               padding: const EdgeInsets.only(top: 15),
               child: ElevatedButton(
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
                   if (_formKey.currentState!.validate()) {
                     // form is valid
                     setState(() {
@@ -98,12 +98,13 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                     //   assetsPath = await imageToAssets(
                     //       url: urlDownload!, uid: userProvider.user!.uid);
                     // }
+                    final imageUrl =
+                        urlDownload ?? 'assets/images/store-placeholder.png';
                     final updateData = <String, dynamic>{
                       "name": _Sname.text,
                       "type": "seller",
                       "image": assetsPath,
-                      "image_url":
-                          urlDownload ?? 'assets/images/store-placeholder.png'
+                      "image_url": imageUrl
                     };
                     //update users info to sellers info (ex: name to shop name)
                     //todo
@@ -111,6 +112,14 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                         uid: userProvider.user!.uid!, data: updateData);
                     if (response.statusCode == 200) {
                       print('Status: 200');
+                      navigator.popUntil((route) => route.isFirst);
+                      itemsObjectList.clear();
+                      userProvider.updateUser(data: updateData);
+                      navigator.pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const Topup2p(),
+                        ),
+                      );
                     } else {
                       //do something
                       //todo

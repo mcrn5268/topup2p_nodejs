@@ -73,15 +73,37 @@ class UserAPIService {
       {required String uid, required Map<String, dynamic> data}) async {
     try {
       final token = await getToken();
-      final response = await http.patch(Uri.parse('$baseUrl/user/update'),
+      var response = await http.patch(Uri.parse('$baseUrl/user/update'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token'
           },
           body: json.encode({'data': data, 'uid': uid}));
+      print('response1: ${response.statusCode}');
+      response = await initialSellerDocument(name: data['name']);
+      print('response2: ${response.statusCode}');
       return response;
     } catch (e) {
       print('Error FavAPIService.convertToSeller: $e');
+      return http.Response('Internal Server Error', 500);
+    }
+  }
+
+  static Future<http.Response> initialSellerDocument(
+      {required String name}) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+          Uri.parse('$baseUrl/seller/initialDocument'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          },
+          body: json.encode({'name': name}));
+
+      return response;
+    } catch (e) {
+      print('Error FavAPIService.initialSellerDocument: $e');
       return http.Response('Internal Server Error', 500);
     }
   }

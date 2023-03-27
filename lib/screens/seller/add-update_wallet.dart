@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/models/payment_model.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
-import 'package:topup2p_nodejs/providers/sell_items_provder.dart';
+import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/utilities/digit_input_formatter.dart';
 import 'package:topup2p_nodejs/utilities/models_utils.dart';
@@ -43,8 +43,9 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
   String _hintTextNum = '';
   late PaymentProvider paymentProvider;
   late SellItemsProvider siProvider;
-
+  bool disableAll = false;
   bool switchFlag = true;
+  bool update = false;
   @override
   void initState() {
     super.initState();
@@ -321,6 +322,7 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
                                   const SnackBar(
                                       content: Text('Wallet updated')));
                               setState(() {
+                                update = true;
                                 _isEditable = !_isEditable;
                               });
                             }
@@ -349,7 +351,12 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
     );
     return WillPopScope(
       onWillPop: () async {
-        List<dynamic> toReturn = [paymentProvider.payments, siProvider.Sitems];
+        List<dynamic> toReturn = [
+          paymentProvider.payments,
+          siProvider.Sitems,
+          disableAll,
+          update
+        ];
         Navigator.pop(context, toReturn);
         return false;
       },
@@ -359,7 +366,9 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
                 onPressed: () {
                   List<dynamic> toReturn = [
                     paymentProvider.payments,
-                    siProvider.Sitems
+                    siProvider.Sitems,
+                    disableAll,
+                    update
                   ];
                   Navigator.pop(context, toReturn);
                 },
@@ -404,7 +413,11 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
                               //     uid: userProvider.user!.uid,
                               //     enable: false,
                               //     shopName: userProvider.user!.name);
-                              siProvider.toggleAllGamesProvider(false);
+                              siProvider.toggleAllGamesProvider(false,
+                                  notify: false);
+                              setState(() {
+                                disableAll = true;
+                              });
                             }
                             paymentProvider.updatePayment(payment!,
                                 isEnabled: !payment!.isEnabled, notify: false);

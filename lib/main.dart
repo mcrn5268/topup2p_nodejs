@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:topup2p_nodejs/providers/favorites_provider.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
-import 'package:topup2p_nodejs/providers/sell_items_provder.dart';
+import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/screens/login.dart';
 import 'package:topup2p_nodejs/screens/seller/seller_main.dart';

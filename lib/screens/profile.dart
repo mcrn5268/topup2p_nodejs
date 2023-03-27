@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/seller_api.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
+import 'package:topup2p_nodejs/models/payment_model.dart';
 import 'package:topup2p_nodejs/providers/favorites_provider.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
-import 'package:topup2p_nodejs/providers/sell_items_provder.dart';
+import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/screens/edit_profile.dart';
 import 'package:topup2p_nodejs/screens/seller/wallets.dart';
@@ -15,9 +17,8 @@ import 'package:topup2p_nodejs/widgets/appbar/signoutbutton.dart';
 
 //this is shared screen for both user type normal and seller
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({this.siItems, this.favorites, super.key});
+  const ProfileScreen({this.favorites, super.key});
   final List<Item>? favorites;
-  final List<Map<Item, String>>? siItems;
   @override
   Widget build(BuildContext context) {
     PaymentProvider? paymentProvider;
@@ -34,7 +35,7 @@ class ProfileScreen extends StatelessWidget {
           siProvider = Provider.of<SellItemsProvider>(context, listen: false);
         } catch (e) {
           if (kDebugMode) {
-            print('Probably just transitioned from user to seller | $e');
+            print('Probably just transitioned from user to seller | error: $e');
           }
         }
       }
@@ -42,10 +43,6 @@ class ProfileScreen extends StatelessWidget {
         favProvider = Provider.of<FavoritesProvider>(context);
         favProvider.clearFavorites(notify: false);
         favProvider.addItems(favorites!, notify: false);
-      }
-      if (siItems != null) {
-        siProvider!.clearItems(notify: false);
-        siProvider.addItems(siItems!, notify: false);
       }
       Widget profileHead = Stack(
         alignment: Alignment.center,
@@ -129,17 +126,7 @@ class ProfileScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
-                      pageBuilder: (_, __, ___) => MultiProvider(
-                        providers: [
-                          ChangeNotifierProvider<SellItemsProvider>.value(
-                            value: SellItemsProvider(),
-                          ),
-                          ChangeNotifierProvider<PaymentProvider>.value(
-                            value: PaymentProvider(),
-                          ),
-                        ],
-                        child: const EditProfileScreen(),
-                      ),
+                      pageBuilder: (_, __, ___) => const EditProfileScreen(),
                       transitionsBuilder: (_, a, __, c) =>
                           FadeTransition(opacity: a, child: c),
                     ),
@@ -148,15 +135,7 @@ class ProfileScreen extends StatelessWidget {
                   await Navigator.push(
                     context,
                     PageRouteBuilder(
-                      pageBuilder: (_, __, ___) => MultiProvider(
-                        providers: [
-                          ChangeNotifierProvider<FavoritesProvider>.value(
-                            value: FavoritesProvider(),
-                          ),
-                        ],
-                        child: EditProfileScreen(
-                            favorites: favProvider!.favorites),
-                      ),
+                      pageBuilder: (_, __, ___) => const EditProfileScreen(),
                       transitionsBuilder: (_, a, __, c) =>
                           FadeTransition(opacity: a, child: c),
                     ),
@@ -192,14 +171,23 @@ class ProfileScreen extends StatelessWidget {
                     trailing: Icon(Icons.arrow_forward_ios_outlined),
                   ),
                   onTap: () async {
-                    final paymentsList = await Navigator.push(
+                    final returnList = await Navigator.push(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (_, __, ___) =>
+                        pageBuilder: (_, __, ___) => MultiProvider(
+                          providers: [
+                            ChangeNotifierProvider<SellItemsProvider>.value(
+                              value: SellItemsProvider(),
+                            ),
                             ChangeNotifierProvider<PaymentProvider>.value(
-                          value: PaymentProvider(),
+                              value: PaymentProvider(),
+                            ),
+                          ],
                           child: SellerWalletsScreen(
                             payments: paymentProvider!.payments,
+                            //must include SellItemsProvider
+                            //because if there is no enabled wallets
+                            //all games will be disabled
                             siItems: siProvider!.Sitems,
                           ),
                         ),
@@ -209,41 +197,52 @@ class ProfileScreen extends StatelessWidget {
                     );
                     //after navigator.pop check if payment has been added
                     //if yes then update both provider and firestore
-                    if (paymentsList != null) {
+                    if (returnList[0] != null) {
+                      print('-------------profile-------------');
                       //add to provider
-                      paymentProvider!.clearPayments();
-                      paymentProvider.addAllPayments(paymentsList);
-                      //add to firestore
-                      Map<String, dynamic> forSellersMap = {};
-                      Map<String, dynamic> forGamesMap = {};
-                      for (int index = 0;
-                          index < paymentProvider.payments.length;
-                          index++) {
-                        Map<String, dynamic> paymentMap = {
-                          'account_name':
-                              paymentProvider.payments[index].accountname,
-                          'account_number':
-                              paymentProvider.payments[index].accountnumber,
-                          'status': paymentProvider.payments[index].isEnabled
-                              ? 'enabled'
-                              : 'disabled'
-                        };
+                      if (returnList[3]) {
+                        //add to database
+                        Map<String, dynamic> forSellersMap = {};
+                        Map<String, dynamic> forGamesMap = {};
+                        for (int index = 0;
+                            index < paymentProvider!.payments.length;
+                            index++) {
+                          Map<String, dynamic> paymentMap = {
+                            'account_name':
+                                paymentProvider.payments[index].accountname,
+                            'account_number':
+                                paymentProvider.payments[index].accountnumber,
+                            'status': paymentProvider.payments[index].isEnabled
+                                ? 'enabled'
+                                : 'disabled'
+                          };
 
-                        String paymentName =
-                            paymentProvider.payments[index].paymentname;
+                          String paymentName =
+                              paymentProvider.payments[index].paymentname;
 
-                        forSellersMap['MoP'] ??=
-                            {}; // Initialize 'MoP' map if it doesn't exist
-                        forSellersMap['MoP'][paymentName] ??=
-                            {}; // Initialize payment map if it doesn't exist
-                        forSellersMap['MoP'][paymentName]
-                            .addAll(paymentMap); // Add payment map to 'MoP'
+                          forSellersMap['MoP'] ??=
+                              {}; // Initialize 'MoP' map if it doesn't exist
+                          forSellersMap['MoP'][paymentName] ??=
+                              {}; // Initialize payment map if it doesn't exist
+                          forSellersMap['MoP'][paymentName]
+                              .addAll(paymentMap); // Add payment map to 'MoP'
 
-                        forGamesMap['mop$index'] = {
-                          'name': paymentName,
-                          ...paymentMap
-                        };
+                          forGamesMap['mop$index'] = {
+                            'name': paymentName,
+                            ...paymentMap
+                          };
+                        }
+                        print('forGamesMap: $forGamesMap');
+                        final response = await SellerAPIService.addPayment(
+                            shopName: userProvider.user!.name,
+                            data: forGamesMap);
+                        if (response.statusCode == 200) {
+                          //success
+                        } else {
+                          //failed
+                        }
                       }
+
                       //todo
                       // FirestoreService().create(
                       //     collection: 'sellers',
@@ -265,6 +264,10 @@ class ProfileScreen extends StatelessWidget {
                       //         userProvider.user!.name: {'mop': forGamesMap}
                       //       });
                       // }
+                    }
+
+                    if (returnList[2] == true) {
+                      siProvider!.rebuild();
                     }
                   }),
               const Divider(),
@@ -295,11 +298,7 @@ class ProfileScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (_, __, ___) =>
-                        ChangeNotifierProvider<FavoritesProvider>.value(
-                      value: FavoritesProvider(),
-                      child: const SellerRegisterScreen(),
-                    ),
+                    pageBuilder: (_, __, ___) => const SellerRegisterScreen(),
                     transitionsBuilder: (_, a, __, c) =>
                         FadeTransition(opacity: a, child: c),
                   ),

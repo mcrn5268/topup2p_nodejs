@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/seller_api.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/models/payment_model.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
-import 'package:topup2p_nodejs/providers/sell_items_provder.dart';
+import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/screens/messages.dart';
 import 'package:topup2p_nodejs/screens/profile.dart';
@@ -32,11 +33,13 @@ class _SellerMainState extends State<SellerMain> {
     super.initState();
     paymentProvider = Provider.of<PaymentProvider>(context, listen: false);
     _isLoading = true;
-    readSellerFirestore();
+    readSellerMongoDB();
     _currentIndex = widget.index ?? 0;
     _children = [
       const SellerMainScreen(),
-      const Scaffold(body: Center(child: Text('Messages')),),
+      const Scaffold(
+        body: Center(child: Text('Messages')),
+      ),
       // MultiProvider(
       //     providers: [
       //       ChangeNotifierProvider<SellItemsProvider>.value(
@@ -51,22 +54,19 @@ class _SellerMainState extends State<SellerMain> {
       //             Provider.of<SellItemsProvider>(context, listen: false).Sitems,
       //         payments: Provider.of<PaymentProvider>(context, listen: false)
       //             .payments)),
-      ChangeNotifierProvider<SellItemsProvider>.value(
-        value: SellItemsProvider(),
-        child: ProfileScreen(
-            siItems:
-                Provider.of<SellItemsProvider>(context, listen: false).Sitems),
-      ),
+      const ProfileScreen()
     ];
   }
 
-  Future<void> readSellerFirestore() async {
+  Future<void> readSellerMongoDB() async {
     //todo
-    const sellerData = null;
     // Map<String, dynamic>? sellerData = await FirestoreService().read(
     //     collection: 'sellers',
     //     documentId:
     //         Provider.of<UserProvider>(context, listen: false).user!.uid);
+    final sellerData = await SellerAPIService.readSellerData(
+        shopName: Provider.of<UserProvider>(context, listen: false).user!.name);
+    print('sellerData: $sellerData');
     if (sellerData != null) {
       //MoPs
       try {
@@ -89,7 +89,7 @@ class _SellerMainState extends State<SellerMain> {
       } catch (e) {
         if (kDebugMode) {
           print(
-              'Something went wrong with reading seller MoP data from Firestore: $e');
+              'Something went wrong with reading seller MoP data from MongoDB: $e');
         }
       }
       //MoPs
@@ -108,7 +108,7 @@ class _SellerMainState extends State<SellerMain> {
       } catch (e) {
         if (kDebugMode) {
           print(
-              'Something went wrong with reading seller games data from Firestore: $e');
+              'Something went wrong with reading seller games data from MongoDB: $e');
         }
       }
     }
@@ -156,8 +156,8 @@ class _SellerMainState extends State<SellerMain> {
                     right: MediaQuery.of(context).size.width / 2 - 15,
                     bottom: 35,
                     child: StreamBuilder(
-                      //todo
-                      stream: null,
+                        //todo
+                        stream: null,
                         // stream: FirestoreService().getSeenStream(
                         //     uid: Provider.of<UserProvider>(context,
                         //             listen: false)

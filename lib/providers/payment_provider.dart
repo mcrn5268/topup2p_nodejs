@@ -41,15 +41,19 @@ class PaymentProvider with ChangeNotifier {
     }
   }
 
-  void updatePaymentList(List<Payment> paymentsFromWallet) {
+  bool updatePaymentList(List<Payment> paymentsFromWallet) {
+    bool isEqual = true;
     if (_payments.length != paymentsFromWallet.length) {
+      isEqual = false;
       _payments.clear();
       _payments.addAll(paymentsFromWallet);
       notifyListeners();
     } else {
-      bool isEqual = true;
       for (int i = 0; i < _payments.length; i++) {
-        if (_payments[i] != (paymentsFromWallet[i])) {
+        print('_payments[i]: ${_payments[i].paymentname} == paymentsFromWallet[i]: ${paymentsFromWallet[i].paymentname}');
+        print('_payments[i]: ${_payments[i].accountname} == paymentsFromWallet[i]: ${paymentsFromWallet[i].accountname}');
+        print('_payments[i]: ${_payments[i].accountnumber} == paymentsFromWallet[i]: ${paymentsFromWallet[i].accountnumber}');
+        if (_payments[i] != paymentsFromWallet[i]) {
           isEqual = false;
           break;
         }
@@ -60,6 +64,8 @@ class PaymentProvider with ChangeNotifier {
         notifyListeners();
       }
     }
+    print('updatePaymentList isEqual $isEqual');
+    return isEqual;
   }
 
   void printAllPayments() {

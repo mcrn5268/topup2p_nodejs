@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/models/payment_model.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
-import 'package:topup2p_nodejs/providers/sell_items_provder.dart';
+import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/utilities/globals.dart';
 import 'package:topup2p_nodejs/utilities/image_file_utils.dart';

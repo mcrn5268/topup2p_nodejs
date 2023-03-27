@@ -3,7 +3,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
-import 'package:topup2p_nodejs/providers/sell_items_provder.dart';
+import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/screens/seller/add-item.dart';
 import 'package:topup2p_nodejs/screens/seller/seller_main.dart';
@@ -325,7 +325,17 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
             Navigator.pushReplacement(
               context,
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const SellerMain(index: 2),
+                pageBuilder: (_, __, ___) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider<PaymentProvider>.value(
+                      value: PaymentProvider(),
+                    ),
+                    ChangeNotifierProvider<SellItemsProvider>.value(
+                      value: SellItemsProvider(),
+                    ),
+                  ],
+                  child: const SellerMain(index: 2),
+                ),
                 transitionsBuilder: (_, a, __, c) =>
                     FadeTransition(opacity: a, child: c),
               ),
@@ -336,8 +346,10 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
         child: const Icon(Icons.add),
       ),
     );
-    bool oneEnabled =
-        siProvider.Sitems.any((map) => map.values.first == 'enabled');
+    //listen to true
+    bool oneEnabled = Provider.of<SellItemsProvider>(context, listen: true)
+        .Sitems
+        .any((map) => map.values.first == 'enabled');
     return Scaffold(
       appBar: AppBar(
           centerTitle: true,
@@ -351,27 +363,30 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
         bucket: _bucket,
         child: Stack(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                InkWell(
-                  onTap: () {
-                    siProvider.toggleAllGamesProvider(!oneEnabled);
-                    //todo
-                    // FirestoreService().toggleAllGames(
-                    //     enable: !oneEnabled,
-                    //     shopName: userProvider.user!.name,
-                    //     uid: userProvider.user!.uid);
-                    setState(() {});
-                  },
-                  child: Row(
-                    children: [
-                      Text(oneEnabled ? 'Disable ' : ' Enable '),
-                      const Text('all items')
-                    ],
-                  ),
-                )
-              ],
+            Visibility(
+              visible: siProvider.Sitems.isNotEmpty,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      siProvider.toggleAllGamesProvider(!oneEnabled);
+                      //todo
+                      // FirestoreService().toggleAllGames(
+                      //     enable: !oneEnabled,
+                      //     shopName: userProvider.user!.name,
+                      //     uid: userProvider.user!.uid);
+                      setState(() {});
+                    },
+                    child: Row(
+                      children: [
+                        Text(oneEnabled ? 'Disable ' : ' Enable '),
+                        const Text('all items')
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 20),

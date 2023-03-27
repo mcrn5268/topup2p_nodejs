@@ -12,8 +12,7 @@ import 'package:topup2p_nodejs/widgets/loading_screen.dart';
 import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({this.favorites, super.key});
-  final List<Item>? favorites;
+  const EditProfileScreen({super.key});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -48,10 +47,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.favorites != null) {
-      favProvider = Provider.of<FavoritesProvider>(context, listen: false);
-      favProvider!.addItems(widget.favorites!, notify: false);
-    }
     userProvider = Provider.of<UserProvider>(context, listen: false);
     _Sname.text = userProvider.user!.name;
   }
@@ -120,7 +115,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           //     collection: 'users',
                           //     documentId: userProvider.user!.uid,
                           //     data: imageMap);
-                          userProvider.updateUser(image: imageMap['image']);
+                          userProvider
+                              .updateUser(data: {'image': imageMap['image']});
                           //if user is seller
                           if (userProvider.user!.type == 'seller') {
                             //todo
@@ -213,7 +209,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             //       subcollection: 'games',
                             //       subdocumentId: key);
                             // });
-                            userProvider.updateUser(name: _Sname.text);
+                            userProvider.updateUser(data: {'name': _Sname.text});
                           }
 
                           //update users collection

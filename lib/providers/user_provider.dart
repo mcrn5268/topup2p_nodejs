@@ -23,19 +23,15 @@ class UserProvider extends ChangeNotifier {
   }
 
   void updateUser(
-      // ignore: non_constant_identifier_names
-      {String? name,
-      String? type,
-      String? image,
-      String? image_url}) {
+      {required Map<String, dynamic> data}) {
     if (_user != null) {
       _user = UserModel(
           uid: _user!.uid,
           email: _user!.email,
-          name: name ?? _user!.name,
-          type: type ?? _user!.type,
-          image: image ?? _user!.image,
-          image_url: image_url ?? _user!.image_url);
+          name: data['name'] ?? _user!.name,
+          type: data['type'] ?? _user!.type,
+          image: data['image'] ?? _user!.image,
+          image_url: data['image_url'] ?? _user!.image_url);
 
       notifyListeners();
     }

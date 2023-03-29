@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:topup2p_nodejs/models/user_model.dart';
+import 'package:topup2p_nodejs/utilities/globals.dart';
 import 'package:topup2p_nodejs/utilities/sharedpreference.dart';
 
 class UserAPIService {
-  static const baseUrl = 'http://192.168.254.106:3000';
-
   static Future<UserModel?> getUser({required String userId}) async {
     try {
       final token = await getToken();
@@ -68,26 +67,25 @@ class UserAPIService {
       return {};
     }
   }
-
-  static Future<http.Response> convertToSeller(
+  static Future<List<http.Response>> convertToSeller(
       {required String uid, required Map<String, dynamic> data}) async {
     try {
       final token = await getToken();
-      var response = await http.patch(Uri.parse('$baseUrl/user/update'),
+      List<http.Response> response = [];
+      response.add(await http.patch(Uri.parse('$baseUrl/user/update'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token'
           },
-          body: json.encode({'data': data, 'uid': uid}));
-      print('response1: ${response.statusCode}');
-      response = await initialSellerDocument(name: data['name']);
-      print('response2: ${response.statusCode}');
+          body: json.encode({'data': data, 'uid': uid})));
+      response.add(await initialSellerDocument(name: data['name']));
       return response;
     } catch (e) {
       print('Error FavAPIService.convertToSeller: $e');
-      return http.Response('Internal Server Error', 500);
+      return [http.Response('Internal Server Error', 500)];
     }
   }
+
 
   static Future<http.Response> initialSellerDocument(
       {required String name}) async {

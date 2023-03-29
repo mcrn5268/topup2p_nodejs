@@ -5,22 +5,35 @@ class Payment {
   String accountnumber;
   bool isEnabled;
 
-  Payment(
-      {required this.paymentname,
-      required this.paymentimage,
-      required this.accountname,
-      required this.accountnumber,
-      required this.isEnabled});
+  Payment({
+    required this.paymentname,
+    required this.paymentimage,
+    required this.accountname,
+    required this.accountnumber,
+    required this.isEnabled,
+  });
 
   factory Payment.fromMap(Map<String, dynamic> map) {
-  final paymentName = map.keys.toList()[0];
-  final paymentData = map[paymentName];
+    final paymentName = map.keys.toList()[0];
+    final paymentData = map[paymentName];
     return Payment(
-        paymentname: paymentName,
-        accountname: paymentData['account_name'],
-        accountnumber: paymentData['account_number'],
-        isEnabled: paymentData['status']=='enabled',
-        paymentimage: paymentData['image']);
+      paymentname: paymentName,
+      accountname: paymentData['account_name'],
+      accountnumber: paymentData['account_number'],
+      isEnabled: paymentData['status'] == 'enabled',
+      paymentimage: paymentData['image'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    final paymentData = {
+      'name': paymentname,
+      'account_name': accountname,
+      'account_number': accountnumber,
+      'status': isEnabled ? 'enabled' : 'disabled',
+      'image': paymentimage,
+    };
+    return paymentData;
   }
 
   @override

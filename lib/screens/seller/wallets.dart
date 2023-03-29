@@ -63,11 +63,11 @@ class _SellerWalletsScreenState extends State<SellerWalletsScreen> {
               FadeTransition(opacity: a, child: c),
         ),
       );
-      if (paymentProvider.payments.isEmpty) {
-        if (result[0] != null) {
-          paymentProvider.updatePaymentList(result[0]);
-        }
+
+      if (result[0] != null) {
+        paymentProvider.updatePaymentList(result[0]);
       }
+
       setState(() {
         update = result[3];
         disableAll = result[2];

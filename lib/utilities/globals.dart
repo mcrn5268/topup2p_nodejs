@@ -1,6 +1,12 @@
 import 'dart:ui';
 import 'package:topup2p_nodejs/models/item_model.dart';
 
+
+//nodejs
+const baseUrl = 'http://192.168.254.106:3000';
+//const baseUrl = 'http://localhost:3000';
+
+
 //for size of device
 var pixelRatio = window.devicePixelRatio;
 var logicalScreenSize = window.physicalSize / pixelRatio;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/seller_api.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/models/payment_model.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
@@ -48,7 +49,7 @@ class _AddItemSellState extends State<AddItemSell> {
   bool _switchVisible = false;
   String forButton = 'ADD';
   late SellItemsProvider siProvider;
-
+  late UserProvider userProvider;
   Map<String, dynamic> itemDataMap = {};
 
   void _cRateValidation() {
@@ -78,6 +79,7 @@ class _AddItemSellState extends State<AddItemSell> {
   @override
   void initState() {
     super.initState();
+    userProvider = Provider.of<UserProvider>(context, listen: false);
     if (widget.update == true) {
       _typeAheadController.text = widget.game!;
       gameIconPath = gameIcon(_typeAheadController.text);
@@ -105,23 +107,23 @@ class _AddItemSellState extends State<AddItemSell> {
     if (item != null) {
       bool isAlreadyPosted = siProvider.itemExist(item);
       if (isAlreadyPosted) {
-        itemDataMap = {};
-        //todo
-        // itemDataMap = await FirestoreService().read(
-        //     collection: 'sellers',
-        //     documentId:
-        //         Provider.of<UserProvider>(context, listen: false).user!.uid,
-        //     subcollection: 'games',
-        //     subdocumentId: gameName);
+        final result = await SellerAPIService.readGameData(
+            gameName: gameName, shopName: userProvider.user!.name);
+        print('result $result');
+        itemDataMap = result[0];
+        itemDataMap.remove('mop');
         if (itemDataMap.isNotEmpty) {
           setState(() {
-            isEnabled = itemDataMap['info']['status'] == 'enabled';
+            isEnabled = itemDataMap['storeInfo']['info']['status'] == 'enabled';
             _switchVisible = true;
 
-            for (int index = 0; index < itemDataMap['rates'].length; index++) {
-              _cRate[index].text = itemDataMap['rates']['rate$index']['php'];
+            for (int index = 0;
+                index < itemDataMap['storeInfo']['rates'].length;
+                index++) {
+              _cRate[index].text =
+                  itemDataMap['storeInfo']['rates']['rate$index']['php'];
               _cRate[index + 6].text =
-                  itemDataMap['rates']['rate$index']['digGoods'];
+                  itemDataMap['storeInfo']['rates']['rate$index']['digGoods'];
             }
           });
           forButton = 'UPDATE';
@@ -322,7 +324,7 @@ class _AddItemSellState extends State<AddItemSell> {
                     Item? item = getItemByName(_typeAheadController.text);
                     if (siProvider.itemExist(item!)) {
                       siProvider.updateItem(
-                          item, itemDataMap['info']['status']);
+                          item, itemDataMap['storeInfo']['info']['status']);
                     } else {
                       siProvider.addItem(item, 'enabled');
                     }
@@ -346,20 +348,6 @@ class _AddItemSellState extends State<AddItemSell> {
                           }
                         }
                       }
-                      UserProvider userProvider =
-                          Provider.of<UserProvider>(context, listen: false);
-                      //add the game to sellers collection with status as enabled
-                      //todo
-                      // await FirestoreService().create(
-                      //     collection: 'sellers',
-                      //     documentId: userProvider.user!.uid,
-                      //     data: {
-                      //       'games': {
-                      //         _typeAheadController.text:
-                      //             isEnabled! ? 'enabled' : 'disabled'
-                      //       }
-                      //     });
-                      //add the seller to game document as a collection
                       //mop
                       Map<String, dynamic> mopMap = {};
                       for (int index = 0;
@@ -367,14 +355,13 @@ class _AddItemSellState extends State<AddItemSell> {
                           index++) {
                         var item = paymentProvider.payments[index];
                         if (item.isEnabled) {
-                          mopMap['mop$index'] = {
-                            'name': item.paymentname,
-                            'account_name': item.accountname,
-                            'account_number': item.accountnumber,
-                            'status': item.isEnabled ? 'enabled' : 'disbaled'
-                          };
+                          Map<String, dynamic> paymentMap =
+                              paymentProvider.payments[index].toMap();
+                          paymentMap.remove('image');
+                          mopMap['mop$index'] = {...paymentMap};
                         }
                       }
+
                       final Map<String, dynamic> mapData = {
                         'mop': mopMap,
                         'rates': ratesMap,
@@ -389,22 +376,23 @@ class _AddItemSellState extends State<AddItemSell> {
                           'image': userProvider.user!.image_url
                         }
                       };
-                      //todo
-                      // await FirestoreService().create(
-                      //     collection: 'seller_games_data',
-                      //     documentId: _typeAheadController.text,
-                      //     data: {userProvider.user!.name: mapData});
+                      final response = await SellerAPIService.addGame(
+                          shopName: userProvider.user!.name,
+                          gameName: _typeAheadController.text,
+                          data: mapData);
 
-                      // await FirestoreService().create(
-                      //   collection: 'sellers',
-                      //   documentId: userProvider.user!.uid,
-                      //   data: mapData,
-                      //   subcollection: 'games',
-                      //   subdocumentId: _typeAheadController.text,
-                      //   merge: false,
-                      // );
-                      scaffoldMsgr.showSnackBar(
-                          const SnackBar(content: Text('Success')));
+                      if (response.statusCode == 200) {
+                        //success
+                        scaffoldMsgr.showSnackBar(
+                            const SnackBar(content: Text('Success')));
+                      } else {
+                        //failed
+                        print(
+                            'addItem failed status code: ${response.statusCode}');
+                        //do something
+                        //todo
+                      }
+
                       setState(() {
                         _isLoading = false;
                       });
@@ -463,58 +451,40 @@ class _AddItemSellState extends State<AddItemSell> {
                       activeColor: Colors.green,
                       inactiveColor: Colors.red,
                       value: isEnabled ?? false,
-                      onToggle: (value) {
+                      onToggle: (value) async {
                         setState(() {
                           isEnabled = !isEnabled!;
                         });
-
+                        final scaffoldMsgr = ScaffoldMessenger.of(context);
+                        final String status =
+                            isEnabled! ? 'enabled' : 'disabled';
                         Provider.of<SellItemsProvider>(context, listen: false)
                             .updateItem(
                                 getItemByName(_typeAheadController.text)!,
-                                isEnabled! ? 'enabled' : 'disabled');
-                        //todo
-                        // FirestoreService().create(
-                        //     collection: 'seller_games_data',
-                        //     documentId: _typeAheadController.text,
-                        //     data: {
-                        //       Provider.of<UserProvider>(context, listen: false)
-                        //           .user!
-                        //           .name: {
-                        //         'info': {
-                        //           'status': isEnabled! ? 'enabled' : 'disabled'
-                        //         }
-                        //       }
-                        //     });
-                        // //sellers fields
-                        // FirestoreService().create(
-                        //     collection: 'sellers',
-                        //     documentId: Provider.of<UserProvider>(context,
-                        //             listen: false)
-                        //         .user!
-                        //         .uid,
-                        //     data: {
-                        //       'games': {
-                        //         _typeAheadController.text:
-                        //             isEnabled! ? 'enabled' : 'disabled'
-                        //       }
-                        //     });
-                        // //sellers subcollection
-                        // FirestoreService().create(
-                        //     collection: 'sellers',
-                        //     documentId: Provider.of<UserProvider>(context,
-                        //             listen: false)
-                        //         .user!
-                        //         .uid,
-                        //     data: {
-                        //       'info': {
-                        //         'status': isEnabled! ? 'enabled' : 'disabled'
-                        //       }
-                        //     },
-                        //     subcollection: 'games',
-                        //     subdocumentId: _typeAheadController.text);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content:
-                                Text(isEnabled! ? 'Enabled' : 'Disbaled')));
+                                status);
+
+                        final response = await SellerAPIService.addGame(
+                            shopName: userProvider.user!.name,
+                            gameName: _typeAheadController.text,
+                            data: {
+                              'info': {
+                                'status': status,
+                                'image': userProvider.user!.image,
+                                'name': userProvider.user!.name,
+                                'uid': userProvider.user!.uid
+                              }
+                            });
+                        if (response.statusCode == 200) {
+                          //success
+                          scaffoldMsgr
+                              .showSnackBar(SnackBar(content: Text(status)));
+                        } else {
+                          //failed
+                          print(
+                              'addItem switch failed status code: ${response.statusCode}');
+                          //do something
+                          //todo
+                        }
                       },
                     ),
                   ),

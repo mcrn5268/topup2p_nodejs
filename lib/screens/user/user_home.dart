@@ -147,8 +147,7 @@ Future<void> GameItemScreenNavigator(
         pageBuilder: (_, __, ___) =>
             ChangeNotifierProvider<FavoritesProvider>.value(
           value: FavoritesProvider(),
-          child:
-              GameSellScreen(gameName: name, favorites: favProvider.favorites),
+          child: ShopScreen(gameName: name, favorites: favProvider.favorites),
         ),
         transitionsBuilder: (_, a, __, c) =>
             FadeTransition(opacity: a, child: c),
@@ -166,8 +165,7 @@ Future<void> GameItemScreenNavigator(
         pageBuilder: (_, __, ___) =>
             ChangeNotifierProvider<FavoritesProvider>.value(
           value: FavoritesProvider(),
-          child:
-              GameSellScreen(gameName: name, favorites: favProvider.favorites),
+          child: ShopScreen(gameName: name, favorites: favProvider.favorites),
         ),
         transitionsBuilder: (_, a, __, c) =>
             FadeTransition(opacity: a, child: c),

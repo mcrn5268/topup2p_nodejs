@@ -70,7 +70,7 @@ class _SellerMainState extends State<SellerMain> {
     if (sellerData != null) {
       //MoPs
       try {
-        Map<String, dynamic>? mopMap = sellerData['MoP'];
+        Map<String, dynamic>? mopMap = sellerData['mop'];
         //If seller has MoP from firestore
         if (mopMap!.isNotEmpty) {
           for (String paymentName in mopMap.keys) {

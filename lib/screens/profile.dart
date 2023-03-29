@@ -199,24 +199,21 @@ class ProfileScreen extends StatelessWidget {
                     //if yes then update both provider and firestore
                     if (returnList[0] != null) {
                       print('-------------profile-------------');
-                      //add to provider
+                      //add to provider if payments is empty
+
+                      paymentProvider!.updatePaymentList(returnList[0]);
+
                       if (returnList[3]) {
                         //add to database
                         Map<String, dynamic> forSellersMap = {};
                         Map<String, dynamic> forGamesMap = {};
                         for (int index = 0;
-                            index < paymentProvider!.payments.length;
+                            index < paymentProvider.payments.length;
                             index++) {
-                          Map<String, dynamic> paymentMap = {
-                            'account_name':
-                                paymentProvider.payments[index].accountname,
-                            'account_number':
-                                paymentProvider.payments[index].accountnumber,
-                            'status': paymentProvider.payments[index].isEnabled
-                                ? 'enabled'
-                                : 'disabled'
-                          };
-
+                          Map<String, dynamic> paymentMap =
+                              paymentProvider.payments[index].toMap();
+                          paymentMap.remove('name');
+                          paymentMap.remove('image');
                           String paymentName =
                               paymentProvider.payments[index].paymentname;
 
@@ -227,10 +224,7 @@ class ProfileScreen extends StatelessWidget {
                           forSellersMap['MoP'][paymentName]
                               .addAll(paymentMap); // Add payment map to 'MoP'
 
-                          forGamesMap['mop$index'] = {
-                            'name': paymentName,
-                            ...paymentMap
-                          };
+                          forGamesMap[paymentName] = {...paymentMap};
                         }
                         print('forGamesMap: $forGamesMap');
                         final response = await SellerAPIService.addPayment(
@@ -238,8 +232,10 @@ class ProfileScreen extends StatelessWidget {
                             data: forGamesMap);
                         if (response.statusCode == 200) {
                           //success
+                          print('addPayment success: ${response.statusCode}');
                         } else {
                           //failed
+                          print('addPayment failed: ${response.statusCode}');
                         }
                       }
 

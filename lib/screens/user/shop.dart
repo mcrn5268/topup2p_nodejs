@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/seller_api.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/providers/favorites_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
@@ -11,16 +12,16 @@ import 'package:topup2p_nodejs/widgets/appbar/appbar.dart';
 import 'package:topup2p_nodejs/widgets/favorite_icon.dart';
 import 'package:topup2p_nodejs/widgets/loading_screen.dart';
 
-class GameSellScreen extends StatefulWidget {
-  const GameSellScreen(
+class ShopScreen extends StatefulWidget {
+  const ShopScreen(
       {required this.gameName, required this.favorites, super.key});
   final String gameName;
   final List<Item> favorites;
   @override
-  State<GameSellScreen> createState() => _GameSellScreenState();
+  State<ShopScreen> createState() => _ShopScreenState();
 }
 
-class _GameSellScreenState extends State<GameSellScreen> {
+class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     UserProvider userProvider =
@@ -33,11 +34,17 @@ class _GameSellScreenState extends State<GameSellScreen> {
         return false;
       },
       child: FutureBuilder(
-          future: null,
+          future: SellerAPIService.readGameData(gameName: widget.gameName),
           //todo
           //FirestoreService().read(collection: 'seller_games_data', documentId: widget.gameName),
           builder: ((context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
+              print('data: ${snapshot.data}');
+              Map<String, dynamic> storesData = {};
+              for (var store in snapshot.data!) {
+                storesData[store['storeName']] = store['storeInfo'];
+              }
+              print('storesData: ${storesData}');
               favProvider.addItems(widget.favorites, notify: false);
               return Scaffold(
                   appBar: AppBarWidget(
@@ -47,7 +54,7 @@ class _GameSellScreenState extends State<GameSellScreen> {
                     fromGameSellScreen: favProvider.favorites,
                   ),
                   body: sellerBody(snapshot.data != null
-                      ? snapshot.data as Map<String, dynamic>
+                      ? storesData
                       : {}));
             } else {
               return const LoadingScreen();

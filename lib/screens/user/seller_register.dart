@@ -101,17 +101,25 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                     final imageUrl =
                         urlDownload ?? 'assets/images/store-placeholder.png';
                     final updateData = <String, dynamic>{
-                      "name": _Sname.text,
+                      "name": _Sname.text.trim(),
                       "type": "seller",
                       "image": assetsPath,
                       "image_url": imageUrl
                     };
                     //update users info to sellers info (ex: name to shop name)
                     //todo
-                    final response = await UserAPIService.convertToSeller(
+                    final responses = await UserAPIService.convertToSeller(
                         uid: userProvider.user!.uid!, data: updateData);
-                    if (response.statusCode == 200) {
-                      print('Status: 200');
+                    bool flag = true;
+                    for (var response in responses) {
+                      if (response.statusCode != 200) {
+                        //do something
+                        //todo
+                        print('Error Status Code: ${response.statusCode}');
+                        flag = false;
+                      }
+                    }
+                    if (flag) {
                       navigator.popUntil((route) => route.isFirst);
                       itemsObjectList.clear();
                       userProvider.updateUser(data: updateData);
@@ -120,10 +128,6 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                           builder: (context) => const Topup2p(),
                         ),
                       );
-                    } else {
-                      //do something
-                      //todo
-                      print('Error Status Code: ${response.statusCode}');
                     }
                     // FirestoreService().update(
                     //     collection: 'users',

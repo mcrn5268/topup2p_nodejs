@@ -44,21 +44,6 @@ class SellerAPIService {
     }
   }
 
-  // final Map<String, dynamic> mapData = {
-  //   'mop': mopMap,
-  //   'rates': ratesMap,
-  //   'info': {
-  //     'status': forButton == 'ADD'
-  //         ? 'enabled'
-  //         : isEnabled!
-  //             ? 'enabled'
-  //             : 'disabled',
-  //     'uid': userProvider.user!.uid,
-  //     'name': userProvider.user!.name,
-  //     'image': userProvider.user!.image_url
-  //   }
-  // };
-
   static Future<http.Response> readPayment(
       {required String shopName, required Map<String, dynamic> data}) async {
     try {
@@ -127,6 +112,25 @@ class SellerAPIService {
         print('Error SellerAPIService.readGameData: $e');
       }
       return [];
+    }
+  }
+
+  static Future<http.Response> toggleAllItems(
+      {required String shopName, required String status}) async {
+    try {
+      final token = await UserAPIService.getToken();
+      final response = await http.post(
+          Uri.parse('$baseUrl/seller/toggleAllItems'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          },
+          body: json.encode({'sellerName': shopName, 'status': status}));
+
+      return response;
+    } catch (e) {
+      print('Error SellerAPIService.toggleAllItems: $e');
+      return http.Response('Internal Server Error', 500);
     }
   }
 }

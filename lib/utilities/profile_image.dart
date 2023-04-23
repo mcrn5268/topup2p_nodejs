@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
+import 'package:topup2p_nodejs/utilities/image_file_utils.dart';
 
 Widget getImage(context) {
   UserProvider userProvider = Provider.of<UserProvider>(context);
@@ -14,12 +15,11 @@ Widget getImage(context) {
     //if file doesn't exist in local files
     if (!file.existsSync()) {
       //image url to assets
-      //todo
-      // imageToAssets(
-      //         url: userProvider.user!.image_url, uid: userProvider.user!.uid)
-      //     .then((path) {
-      //   userProvider.updateUser(image: path);
-      // });
+      imageToAssets(
+              url: userProvider.user!.image_url, uid: userProvider.user!.uid!)
+          .then((path) {
+        userProvider.updateUser(data: {'image': path});
+      });
       //temporary container while waiting for userprovider notifylistener
       return Container();
     } else {

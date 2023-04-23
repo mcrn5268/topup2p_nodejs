@@ -3,6 +3,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/user_api.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/providers/favorites_provider.dart';
 import 'package:topup2p_nodejs/providers/user_provider.dart';
@@ -10,6 +11,8 @@ import 'package:topup2p_nodejs/utilities/image_file_utils.dart';
 import 'package:topup2p_nodejs/utilities/profile_image.dart';
 import 'package:topup2p_nodejs/widgets/loading_screen.dart';
 import 'dart:io';
+
+import 'package:topup2p_nodejs/widgets/toast.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -83,7 +86,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ElevatedButton(
                 onPressed: () async {
                   final navigator = Navigator.of(context);
-                  final scaffoldMsgr = ScaffoldMessenger.of(context);
                   if (_formKey.currentState!.validate()) {
                     // form is valid
                     if (pickedFile != null ||
@@ -97,172 +99,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       if (_errorMessage == null) {
                         //image is changed
                         if (pickedFile != null) {
-                          //todo
-                          // urlDownload = await uploadImageFile(
-                          //     pickedFile!, userProvider.user!.uid);
+                          urlDownload = await uploadImageFile(
+                              pickedFile!, userProvider.user!.uid!);
                           String assetsPath =
                               userProvider.user!.type == 'seller'
                                   ? 'assets/images/store-placeholder.png'
                                   : 'assets/images/person-placeholder.png';
                           Map<String, dynamic> imageMap = {'image': assetsPath};
-                          //todo
-                          // if (urlDownload != null) {
-                          //   imageMap['image'] = await imageToAssets(
-                          //       url: urlDownload!, uid: userProvider.user!.uid);
-                          //   imageMap['image_url'] = urlDownload;
-                          // }
-                          // FirestoreService().create(
-                          //     collection: 'users',
-                          //     documentId: userProvider.user!.uid,
-                          //     data: imageMap);
+
+                          if (urlDownload != null) {
+                            imageMap['image'] = await imageToAssets(
+                                url: urlDownload!,
+                                uid: userProvider.user!.uid!);
+                            imageMap['image_url'] = urlDownload;
+                          }
+                          UserAPIService.update(
+                              uid: userProvider.user!.uid!,
+                              data: imageMap,
+                              updateType: 'image');
                           userProvider
                               .updateUser(data: {'image': imageMap['image']});
-                          //if user is seller
-                          if (userProvider.user!.type == 'seller') {
-                            //todo
-                            // Map<String, dynamic> sellerData =
-                            //     await FirestoreService().read(
-                            //         collection: 'sellers',
-                            //         documentId: userProvider.user!.uid);
-                            // sellerData['games'].forEach((key, value) {
-                            //   FirestoreService().create(
-                            //       collection: 'users',
-                            //       documentId: userProvider.user!.name,
-                            //       data: {
-                            //         'info': {'image': urlDownload}
-                            //       },
-                            //       subcollection: 'games',
-                            //       subdocumentId: key);
-                            //   FirestoreService().create(
-                            //       collection: 'seller_games_data',
-                            //       documentId: key,
-                            //       data: {
-                            //         userProvider.user!.name: {
-                            //           'info': {'image': urlDownload}
-                            //         }
-                            //       });
-                            // });
-                          }
-                          //update messages - image
-                          // final forMessages = await FirestoreService().read(
-                          //     collection: 'messages',
-                          //     documentId: 'users_conversations',
-                          //     subcollection: userProvider.user!.uid);
-                          // if (forMessages != null) {
-                          //   List<dynamic> documents = forMessages.docs;
-                          //   for (var document in documents) {
-                          //     FirestoreService().create(
-                          //         collection: 'messages',
-                          //         documentId: 'users',
-                          //         data: {
-                          //           'other_user': {'image': urlDownload}
-                          //         },
-                          //         subcollection: document.id,
-                          //         subdocumentId:
-                          //             document.data()!["conversationId"]);
-                          //   }
-                          // }
                         }
 
                         //name is changed
                         if (_Sname.text != userProvider.user!.name) {
-                          //purpose is because the processing of firestore is async and won't be using await
-                          //ifi not stored then userProvider.user!.name will be updated before being used by FirestoreService
-                          String oldName = userProvider.user!.name;
-                          //update seller_games_data and seller - games subcollection
-                          if (userProvider.user!.type == 'seller') {
-                            //todo
-                            // Map<String, dynamic> sellerData =
-                            //     await FirestoreService().read(
-                            //         collection: 'sellers',
-                            //         documentId: userProvider.user!.uid);
-                            // sellerData['games'].forEach((key, value) async {
-                            //   //seller_games_data
-
-                            //   //read seller_games_data old data
-                            //   Map<String, dynamic> oldFieldSGD =
-                            //       await FirestoreService().read(
-                            //           collection: 'seller_games_data',
-                            //           documentId: key);
-                            //   Map<String, dynamic> newField =
-                            //       oldFieldSGD[oldName];
-                            //   newField['info']['name'] = _Sname.text;
-                            //   //write seller_games_data new data
-                            //   FirestoreService().create(
-                            //       collection: 'seller_games_data',
-                            //       documentId: key,
-                            //       data: {_Sname.text: newField});
-
-                            //   //delete seller_games_data old data
-                            //   FirestoreService().deleteField(
-                            //       collection: 'seller_games_data',
-                            //       documentId: key,
-                            //       field: oldName);
-
-                            //   //update users - subcollection
-                            //   FirestoreService().create(
-                            //       collection: 'sellers',
-                            //       documentId: userProvider.user!.uid,
-                            //       data: {
-                            //         'info': {'name': _Sname.text}
-                            //       },
-                            //       subcollection: 'games',
-                            //       subdocumentId: key);
-                            // });
-                            userProvider.updateUser(data: {'name': _Sname.text});
-                          }
-
-                          //update users collection
-                          //todo
-                          // FirestoreService().create(
-                          //     collection: 'users',
-                          //     documentId: userProvider.user!.uid,
-                          //     data: {'name': _Sname.text});
-                          // //update sellers collection
-                          // FirestoreService().create(
-                          //     collection: 'sellers',
-                          //     documentId: userProvider.user!.uid,
-                          //     data: {'name': _Sname.text});
-
-                          // //update messages - name
-                          // final forMessages = await FirestoreService().read(
-                          //     collection: 'messages',
-                          //     documentId: 'users_conversations',
-                          //     subcollection: userProvider.user!.uid);
-                          // if (forMessages != null) {
-                          //   List<dynamic> documents = forMessages.docs;
-                          //   for (var document in documents) {
-                          //     FirestoreService().create(
-                          //         collection: 'messages',
-                          //         documentId: 'users',
-                          //         data: {
-                          //           'other_user': {'name': _Sname.text}
-                          //         },
-                          //         subcollection: document.id,
-                          //         subdocumentId:
-                          //             document.data()!["conversationId"]);
-                          //   }
-                          // }
+                          UserAPIService.update(
+                              uid: userProvider.user!.uid!,
+                              data: {'name': _Sname.text},
+                              updateType: 'name');
+                          userProvider.updateUser(data: {'name': _Sname.text});
                         }
                         navigator.pop();
 
                         setState(() {
                           _isLoading = false;
                         });
-                        scaffoldMsgr.showSnackBar(
-                            const SnackBar(content: Text('Profile Updated')));
+                        showToast('Profile Updated');
                       } else {
                         setState(() {
                           _isLoading = false;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Shop name is already taken. Try again.')));
+                          showToast('Shop name is already taken. Try again.');
                         });
                       }
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('No changes has been made')));
+                      showToast('No changes has been made');
                       Navigator.pop(context);
                     }
                   }

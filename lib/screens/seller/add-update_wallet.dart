@@ -13,6 +13,7 @@ import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/utilities/digit_input_formatter.dart';
 import 'package:topup2p_nodejs/utilities/models_utils.dart';
 import 'package:topup2p_nodejs/widgets/show_dialog.dart';
+import 'package:topup2p_nodejs/widgets/toast.dart';
 
 //todo if there is no wallet left, disable all of the items
 //also show warning
@@ -270,33 +271,21 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
                                         payment!.accountnumber ==
                                             _controllernum.text)
                                     : false)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('No changes has been made')));
+                              showToast('No changes has been made');
                               setState(() {
                                 _isEditable = !_isEditable;
                               });
                             } else if (_controllername.text == '') {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          'Account name must not be empty')));
+                              showToast('Account name must not be empty');
                             } else if (_controllernum.text == '') {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          'Account number must not be empty')));
+                              showToast('Account number must not be empty');
                             } else if (_controllernum.text.length != limit) {
                               if (_controllernum.text.length == 1) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Account number start with either 09 or 639')));
+                                showToast(
+                                    'Account number start with either 09 or 639');
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    content: Text(
-                                        'Account number must have $limit digits')));
+                                showToast(
+                                    'Account number must have $limit digits');
                               }
                             } else {
                               payment = Payment(
@@ -317,10 +306,8 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
                                     accountname: _controllername.text,
                                     accountnumber: _controllernum.text);
                               }
+                              showToast('Wallet updated');
 
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Wallet updated')));
                               setState(() {
                                 update = true;
                                 _isEditable = !_isEditable;
@@ -408,11 +395,6 @@ class _AddUpdateWalletScreenState extends State<AddUpdateWalletScreen> {
                           }
                           if (switchFlag) {
                             if (onlyOne) {
-                              //todo
-                              // FirestoreService().toggleAllGames(
-                              //     uid: userProvider.user!.uid,
-                              //     enable: false,
-                              //     shopName: userProvider.user!.name);
                               siProvider.toggleAllGamesProvider(false,
                                   notify: false);
                               setState(() {

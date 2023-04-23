@@ -15,6 +15,7 @@ import 'package:topup2p_nodejs/utilities/image_file_utils.dart';
 import 'package:topup2p_nodejs/utilities/models_utils.dart';
 import 'package:topup2p_nodejs/utilities/profile_image.dart';
 import 'package:topup2p_nodejs/widgets/loading_screen.dart';
+import 'package:topup2p_nodejs/widgets/toast.dart';
 
 class AddItemSell extends StatefulWidget {
   const AddItemSell(
@@ -67,9 +68,7 @@ class _AddItemSellState extends State<AddItemSell> {
           _ratesFlag = false;
         }
       } else if (controller.text != '' && controller2.text != '') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content:
-                Text('Rates must not be empty if you wish to add an item!')));
+        showToast('Rates must not be empty if you wish to add an item!');
         _ratesFlag = false;
       }
       setState(() {});
@@ -286,8 +285,7 @@ class _AddItemSellState extends State<AddItemSell> {
           GestureDetector(
             onTap: () {
               if (_typeAheadController.text == '') {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Select a game first!')));
+                showToast('Select a game first!');
               }
             },
             child: Stack(
@@ -316,7 +314,6 @@ class _AddItemSellState extends State<AddItemSell> {
                 visible: _typeAheadController.text != '',
                 child: ElevatedButton(
                   onPressed: () async {
-                    final scaffoldMsgr = ScaffoldMessenger.of(context);
                     _cRateValidation();
                     //add item to provider and firestore
                     //SellItemsProvider
@@ -383,14 +380,10 @@ class _AddItemSellState extends State<AddItemSell> {
 
                       if (response.statusCode == 200) {
                         //success
-                        scaffoldMsgr.showSnackBar(
-                            const SnackBar(content: Text('Success')));
+                        showToast('Success');
                       } else {
-                        //failed
                         print(
                             'addItem failed status code: ${response.statusCode}');
-                        //do something
-                        //todo
                       }
 
                       setState(() {
@@ -455,7 +448,6 @@ class _AddItemSellState extends State<AddItemSell> {
                         setState(() {
                           isEnabled = !isEnabled!;
                         });
-                        final scaffoldMsgr = ScaffoldMessenger.of(context);
                         final String status =
                             isEnabled! ? 'enabled' : 'disabled';
                         Provider.of<SellItemsProvider>(context, listen: false)
@@ -476,8 +468,7 @@ class _AddItemSellState extends State<AddItemSell> {
                             });
                         if (response.statusCode == 200) {
                           //success
-                          scaffoldMsgr
-                              .showSnackBar(SnackBar(content: Text(status)));
+                          showToast(status);
                         } else {
                           //failed
                           print(

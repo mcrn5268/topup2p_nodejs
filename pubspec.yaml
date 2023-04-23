@@ -48,6 +48,16 @@ dependencies:
   shared_preferences: ^2.0.18
   uuid: ^3.0.7
   fluttertoast: ^8.2.1
+  googleapis_auth: ^1.4.0
+  googleapis: ^10.1.0
+  path: ^1.8.0
+  firebase_storage: ^11.1.0
+  path_provider: ^2.0.14
+  firebase_core: ^2.9.0
+  encrypt: ^5.0.1
+  crypton: ^2.1.0
+  web_socket_channel: ^2.1.0
+  socket_io_client: ^2.0.1
 
 dev_dependencies:
   flutter_test:

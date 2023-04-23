@@ -2,6 +2,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/seller_api.dart';
 import 'package:topup2p_nodejs/api/user_api.dart';
 import 'package:topup2p_nodejs/main.dart';
 import 'package:topup2p_nodejs/providers/favorites_provider.dart';
@@ -27,25 +28,14 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
   String? urlDownload;
 
   void _textValidator(String value) async {
-    late bool flag;
     if (value.isEmpty) {
       _errorMessage = 'Shop name is required';
     }
-    //todo
-    // await FirebaseFirestore.instance
-    //     .collection('sellers')
-    //     .doc(value)
-    //     .get()
-    //     .then((document) {
-    //   if (!document.exists) {
-    //     flag = false;
-    //   } else {
-    //     flag = true;
-    //   }
-    // });
-    // setState(() {
-    //   _errorMessage = flag ? 'Shop name is already taken' : null;
-    // });
+    final doesExist = await SellerAPIService.readSellerData(shopName: value);
+    bool flag = doesExist != null ? true : false;
+    setState(() {
+      _errorMessage = flag ? 'Shop name is already taken' : null;
+    });
   }
 
   @override
@@ -88,16 +78,15 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                       _isLoading = true;
                     });
                     //picked a file
-                    //todo
-                    // if (pickedFile != null) {
-                    //   urlDownload = await uploadImageFile(
-                    //       pickedFile!, userProvider.user!.uid);
-                    // }
+                    if (pickedFile != null) {
+                      urlDownload = await uploadImageFile(
+                          pickedFile!, userProvider.user!.uid!);
+                    }
                     String assetsPath = 'assets/images/store-placeholder.png';
-                    // if (urlDownload != null) {
-                    //   assetsPath = await imageToAssets(
-                    //       url: urlDownload!, uid: userProvider.user!.uid);
-                    // }
+                    if (urlDownload != null) {
+                      assetsPath = await imageToAssets(
+                          url: urlDownload!, uid: userProvider.user!.uid!);
+                    }
                     final imageUrl =
                         urlDownload ?? 'assets/images/store-placeholder.png';
                     final updateData = <String, dynamic>{
@@ -107,9 +96,10 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                       "image_url": imageUrl
                     };
                     //update users info to sellers info (ex: name to shop name)
-                    //todo
-                    final responses = await UserAPIService.convertToSeller(
-                        uid: userProvider.user!.uid!, data: updateData);
+                    final responses = await UserAPIService.update(
+                        uid: userProvider.user!.uid!,
+                        data: updateData,
+                        updateType: 'convertToSeller');
                     bool flag = true;
                     for (var response in responses) {
                       if (response.statusCode != 200) {
@@ -128,26 +118,9 @@ class _SellerRegisterScreenState extends State<SellerRegisterScreen> {
                           builder: (context) => const Topup2p(),
                         ),
                       );
+                    } else {
+                      throw 'Conversion to seller failed';
                     }
-                    // FirestoreService().update(
-                    //     collection: 'users',
-                    //     documentId: userProvider.user!.uid,
-                    //     data: updateData);
-                    // FirestoreService().delete(
-                    //     collection: 'user_games_data',
-                    //     documentId: userProvider.user!.uid);
-                    // favProvider.clearFavorites();
-                    // FirestoreService().create(
-                    //     collection: 'sellers',
-                    //     documentId: userProvider.user!.uid,
-                    //     data: {'name': _Sname.text}).then((value) {
-                    //   Navigator.of(context).pushAndRemoveUntil(
-                    //       MaterialPageRoute(
-                    //           builder: (context) => const Topup2p()),
-                    //       (route) => false);
-                    //   userProvider.updateUser(
-                    //       name: _Sname.text, type: 'seller', image: assetsPath);
-                    // });
                     setState(() {
                       _isLoading = false;
                     });

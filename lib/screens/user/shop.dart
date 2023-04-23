@@ -35,8 +35,6 @@ class _ShopScreenState extends State<ShopScreen> {
       },
       child: FutureBuilder(
           future: SellerAPIService.readGameData(gameName: widget.gameName),
-          //todo
-          //FirestoreService().read(collection: 'seller_games_data', documentId: widget.gameName),
           builder: ((context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               print('data: ${snapshot.data}');

@@ -33,7 +33,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data!.isNotEmpty) {
               // Read Firestore data into a List of MapEntry objects
-              //todo check again when there is favorited items already
               List<MapEntry<String, dynamic>> data =
                   snapshot.data!.entries.toList();
               // Sort the List based on the order of fields in the Firestore document - inverted

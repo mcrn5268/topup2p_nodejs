@@ -9,9 +9,12 @@ import 'package:topup2p_nodejs/screens/seller/seller_main.dart';
 import 'package:topup2p_nodejs/screens/user/user_main.dart';
 import 'package:topup2p_nodejs/utilities/globals.dart';
 import 'package:topup2p_nodejs/utilities/models_utils.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     MultiProvider(
       providers: [

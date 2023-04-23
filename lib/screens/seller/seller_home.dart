@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
+import 'package:topup2p_nodejs/api/seller_api.dart';
 import 'package:topup2p_nodejs/models/item_model.dart';
 import 'package:topup2p_nodejs/providers/payment_provider.dart';
 import 'package:topup2p_nodejs/providers/sell_items_provider.dart';
@@ -8,6 +9,7 @@ import 'package:topup2p_nodejs/providers/user_provider.dart';
 import 'package:topup2p_nodejs/screens/seller/add-item.dart';
 import 'package:topup2p_nodejs/screens/seller/seller_main.dart';
 import 'package:topup2p_nodejs/utilities/globals.dart';
+import 'package:topup2p_nodejs/widgets/toast.dart';
 
 class SellerMainScreen extends StatefulWidget {
   const SellerMainScreen({Key? key}) : super(key: key);
@@ -66,23 +68,13 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
               const SizedBox(height: 10),
               Center(
                 child: FutureBuilder(
-                  future: null,
-                  //todo
-                  // FirestoreService().read(
-                  //     collection: 'sellers',
-                  //     documentId:
-                  //         Provider.of<UserProvider>(context, listen: false)
-                  //             .user!
-                  //             .uid,
-                  //     subcollection: 'games',
-                  //     subdocumentId: game),
+                  future: SellerAPIService.readGameData(
+                      gameName: game, shopName: userProvider.user!.name),
                   builder: (BuildContext context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
                     } else {
-                      Map<String, dynamic> data = {};
-                      //todo
-                      //Map<String, dynamic> data = snapshot.data;
+                      Map<String, dynamic> data = snapshot.data![0];
                       return Row(
                         children: [
                           Expanded(child: ratesLoop(data, icon, 0)),
@@ -265,8 +257,7 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
           if (Provider.of<PaymentProvider>(context, listen: false)
               .payments
               .isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('You must have a wallet')));
+            showToast('You must have a wallet');
 
             Navigator.pushReplacement(
               context,
@@ -319,8 +310,7 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
               print(siProvider.Sitems[index]);
             }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('You must have at least 1 enabled wallet')));
+            showToast('You must have at least 1 enabled wallet');
 
             Navigator.pushReplacement(
               context,
@@ -369,18 +359,17 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   InkWell(
-                    onTap: () {
-                      siProvider.toggleAllGamesProvider(!oneEnabled);
-                      //todo
-                      // FirestoreService().toggleAllGames(
-                      //     enable: !oneEnabled,
-                      //     shopName: userProvider.user!.name,
-                      //     uid: userProvider.user!.uid);
-                      setState(() {});
+                    onTap: () async {
+                      final response = await SellerAPIService.toggleAllItems(
+                          shopName: userProvider.user!.name,
+                          status: oneEnabled ? 'disabled' : 'enabled');
+                      if (response.statusCode == 200) {
+                        siProvider.toggleAllGamesProvider(!oneEnabled);
+                      }
                     },
                     child: Row(
                       children: [
-                        Text(oneEnabled ? 'Disable ' : ' Enable '),
+                        Text(oneEnabled ? 'Disable ' : 'Enable '),
                         const Text('all items')
                       ],
                     ),

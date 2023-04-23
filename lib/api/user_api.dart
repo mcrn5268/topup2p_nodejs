@@ -67,8 +67,11 @@ class UserAPIService {
       return {};
     }
   }
-  static Future<List<http.Response>> convertToSeller(
-      {required String uid, required Map<String, dynamic> data}) async {
+
+  static Future<List<http.Response>> update(
+      {required String uid,
+      required Map<String, dynamic> data,
+      required String updateType}) async {
     try {
       final token = await getToken();
       List<http.Response> response = [];
@@ -77,15 +80,16 @@ class UserAPIService {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token'
           },
-          body: json.encode({'data': data, 'uid': uid})));
-      response.add(await initialSellerDocument(name: data['name']));
+          body: json.encode({'data': data, 'uid': uid, 'updateType': updateType})));
+      if (updateType == 'convertToSeller') {
+        response.add(await initialSellerDocument(name: data['name']));
+      }
       return response;
     } catch (e) {
       print('Error FavAPIService.convertToSeller: $e');
       return [http.Response('Internal Server Error', 500)];
     }
   }
-
 
   static Future<http.Response> initialSellerDocument(
       {required String name}) async {

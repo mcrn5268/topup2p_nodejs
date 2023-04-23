@@ -1,5 +1,6 @@
 // import 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
+//import 'package:topup2p_nodejs/widgets/toast.dart';
 
 // class ForgotPasswordScreen extends StatefulWidget {
 //   const ForgotPasswordScreen({super.key});
@@ -23,7 +24,6 @@
 //   Future<void> _resetPassword(String email) async {
 //     final _auth = FirebaseAuth.instance;
 //     final navigator = Navigator.of(context);
-//     final scaffoldMsgr = ScaffoldMessenger.of(context);
 //     try {
 //       // Check if the email address is registered with your Firebase project
 //       List<String> signInMethods =
@@ -40,8 +40,7 @@
 
 //       // The email address is registered, send the password reset email
 //       await _auth.sendPasswordResetEmail(email: email);
-//       scaffoldMsgr
-//           .showSnackBar(const SnackBar(content: Text('Check your email')));
+//       showToast('Check your email');
 //       setState(() {
 //         _errorMessage = '';
 //         _isLoading = false;

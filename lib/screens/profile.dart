@@ -238,28 +238,6 @@ class ProfileScreen extends StatelessWidget {
                           print('addPayment failed: ${response.statusCode}');
                         }
                       }
-
-                      //todo
-                      // FirestoreService().create(
-                      //     collection: 'sellers',
-                      //     documentId: userProvider.user!.uid,
-                      //     data: forSellersMap);
-                      // for (var item in siProvider!.Sitems) {
-                      //   Item itemObject = item.keys.first;
-                      //   FirestoreService().create(
-                      //       collection: 'sellers',
-                      //       documentId: userProvider.user!.uid,
-                      //       data: {'mop': forGamesMap},
-                      //       subcollection: 'games',
-                      //       subdocumentId: itemObject.name);
-
-                      //   FirestoreService().create(
-                      //       collection: 'seller_games_data',
-                      //       documentId: itemObject.name,
-                      //       data: {
-                      //         userProvider.user!.name: {'mop': forGamesMap}
-                      //       });
-                      // }
                     }
 
                     if (returnList[2] == true) {

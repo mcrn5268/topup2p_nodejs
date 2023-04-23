@@ -27,7 +27,7 @@ class SignoutButton extends StatelessWidget {
               itemsObjectList.clear();
               userProvder!.clearUser();
               await SharedPreferencesService().remove('jwt');
-              // Navigate back to main 
+              // Navigate back to main
               navigator.pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => const Topup2p(),
@@ -35,7 +35,7 @@ class SignoutButton extends StatelessWidget {
               );
             } else {
               //failed
-              //todo
+              throw 'Signing out failed';
             }
           }
         } catch (e) {
